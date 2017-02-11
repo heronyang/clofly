@@ -1,0 +1,15 @@
+{
+  "name": "dasf-db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "models.js",
+  "dependencies": {
+    "mongoose": "^4.8.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node starter.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
