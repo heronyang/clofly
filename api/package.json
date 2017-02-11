@@ -1,0 +1,14 @@
+{
+  "name": "dasf-api",
+  "version": "1.0.0",
+  "description": "Commandline interface for dasf usres to deploy their functions.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node dasf.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^4.8.2"
+  }
+}

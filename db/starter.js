@@ -1,24 +1,6 @@
-/*
- * Connection setups
- */
-var mongoose = require('mongoose');
-
-const MONGODB_URI = 'mongodb://localhost/dasf';
-
-mongoose.Promise = global.Promise;
-mongoose.connect(MONGODB_URI);
-
-mongoose.connection.on('connected', function () {
-    console.log('Mongoose is connected to ' + MONGODB_URI);
-});
-mongoose.connection.on('error',function (err) {
-    console.log('Mongoose has error: ' + err);
-});
-mongoose.connection.on('disconnected', function () {
-    console.log('Mongoose is disconnected');
-});
-
-var models = require('./models')(mongoose);
+var mongoose    = require('mongoose');
+var models      = require('./models')(mongoose);
+var connect     = require('./connect')(mongoose);
 
 /*
  * Remove previous collections
@@ -31,7 +13,7 @@ models.UserFunction.remove({}, function(err) {
  * Create a hello function for testing
  */
 var helloFunction = new models.UserFunction({
-    code: 'console.log("hello");'
+    code: "function (req, res) { res.send('hello darf (database init)!!\n'); }"
 });
 
 helloFunction.save(function(err) {

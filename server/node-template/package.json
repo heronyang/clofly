@@ -1,5 +1,5 @@
 {
-  "name": "darf/nodejs-template",
+  "name": "darf-nodejs-template",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
