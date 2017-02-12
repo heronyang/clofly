@@ -1,11 +1,15 @@
 #!/usr/bin/env python
+
 import sys, os, subprocess
 import random
+import time
+import httplib
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from pprint import pprint
 from shutil import copyfile
 from subprocess import check_output
+from urllib2 import Request, urlopen, URLError, HTTPError
 
 NODEJS_TEMPLATE             = './node-template/'
 NODEJS_TEMPLATE_ORIGINAL    = NODEJS_TEMPLATE + 'server-template.js'
@@ -13,6 +17,8 @@ NODEJS_TEMPLATE_DEPLOY      = NODEJS_TEMPLATE + 'server.js'
 
 DOCKER_BUILD_SCRIPT         = './node-template/build.sh'
 DOCKER_IMAGE_NAME_PREFIX    = 'darf/nodejs-user-function-'
+
+SERVER_HEARTBEAT_PERIOD     = 0.1
 
 def main():
 
@@ -31,7 +37,7 @@ def main():
     clean_up()
 
     # return
-    return_http_response()
+    # return_http_response()
 
 def retrieve_user_function_code(fid):
 
@@ -45,14 +51,14 @@ def retrieve_user_function_code(fid):
 def append_user_function_code(uf):
 
     # copy
-	copyfile(NODEJS_TEMPLATE_ORIGINAL, NODEJS_TEMPLATE_DEPLOY)
+    copyfile(NODEJS_TEMPLATE_ORIGINAL, NODEJS_TEMPLATE_DEPLOY)
 
-	# code to append
-	code = "\napp.get('/', " + uf + ");"
+    # code to append
+    code = "\napp.get('/', " + uf + ");"
 
     # append code
-	with open(NODEJS_TEMPLATE_DEPLOY, "a") as serverjs:
-		serverjs.write(code)
+    with open(NODEJS_TEMPLATE_DEPLOY, "a") as serverjs:
+        serverjs.write(code)
         print 'code appended'
 
 
@@ -66,7 +72,7 @@ def run_docker(user_function_code, fid):
     output = check_output(build_cmd)
     print output
 
-	# run
+    # run
     port = random.randint(1024 ,65535)  # random
     print 'docker client listening on port ' + str(port)
 
@@ -74,6 +80,49 @@ def run_docker(user_function_code, fid):
     output = check_output(run_cmd)
     print output
 
+    # block and wait for docker
+    block_util_docker_is_up(port)
+
+    # forward request
+    forward_request_to_docker(port)
+
+    # stop docker image
+
+def block_util_docker_is_up(port):
+
+    # list on port (server)
+    while True:
+        time.sleep(SERVER_HEARTBEAT_PERIOD)
+        url = 'http://localhost:' + str(port) + '/heartbeat'
+        req = Request(url)
+        print 'heartbeat sent to ' + url
+        try:
+            response = urlopen(req)
+        except HTTPError as e:
+            pass
+        except URLError as e:
+            pass
+        except httplib.BadStatusLine:
+            pass
+        else:
+            print 'okay, function is up'
+            break
+
+def forward_request_to_docker(port):
+
+    url = 'http://localhost:' + str(port) + '/'
+    req = Request(url)
+    try:
+        response = urlopen(req)
+    except HTTPError as e:
+        pass
+    except URLError as e:
+        pass
+    except httplib.BadStatusLine:
+        pass
+    else:
+        print "\n========= Response ========="
+        print response.read()
 
 def clean_up():
     os.remove(NODEJS_TEMPLATE_DEPLOY)
