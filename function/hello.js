@@ -1,3 +1,3 @@
-function (req, res) {
-    res.send('Hello~~, how are you??!!\n');
+global.f = function (req, res) {
+    res.send('Hello World!!');
 }

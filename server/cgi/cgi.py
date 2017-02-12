@@ -14,12 +14,8 @@ from subprocess import check_output
 from urllib2 import Request, urlopen, URLError, HTTPError
 from socket import error as SocketError
 
-NODEJS_TEMPLATE             = './node-template/'
-NODEJS_TEMPLATE_ORIGINAL    = NODEJS_TEMPLATE + 'server-template.js'
-NODEJS_TEMPLATE_DEPLOY      = NODEJS_TEMPLATE + 'server.js'
-
+NODEJS_TEMPLATE             = './node-template'
 DOCKER_IMAGE_NAME_PREFIX    = 'clofly/nodejs-user-function-'
-
 SERVER_HEARTBEAT_PERIOD     = 0.01
 
 start_time = time.time()
@@ -41,10 +37,12 @@ def main():
 
     print('--- %s seconds ---' % (time.time() - start_time))
 
-    # clean up
-    clean_up()
 
-    print('--- %s seconds ---' % (time.time() - start_time))
+def run(cmd):
+
+    output = check_output(cmd)
+    print output
+    return output
 
 def retrieve_user_function_code(fid):
 
@@ -55,30 +53,30 @@ def retrieve_user_function_code(fid):
     print 'User Function: \n' + uf
     return uf
 
-def append_user_function_code(uf):
+def load_user_function_code(uf, target_folder):
 
-    # copy
-    copyfile(NODEJS_TEMPLATE_ORIGINAL, NODEJS_TEMPLATE_DEPLOY)
+    # copy template folder to target folder
+    run(['cp', '-r', NODEJS_TEMPLATE, target_folder])
 
-    # code to append
-    code = "\napp.get('/', " + uf + ");"
-
-    # append code
-    with open(NODEJS_TEMPLATE_DEPLOY, "a") as serverjs:
-        serverjs.write(code)
-        print 'code appended'
+    # load code
+    uf_filepath = target_folder + '/user-function.js'
+    with open(uf_filepath, "w") as uf_js:
+        uf_js.write(uf)
+        print 'code loaded'
 
 
 def run_docker(user_function_code, fid):
 
-    append_user_function_code(user_function_code)
+    # name/path setup
+    docker_folder = NODEJS_TEMPLATE + '-' + fid
     docker_image_name = DOCKER_IMAGE_NAME_PREFIX + fid
 
-    # build
-    build_cmd = ['docker', 'build', '-t', docker_image_name, NODEJS_TEMPLATE]
-    output = check_output(build_cmd)
-    print output
+    # load user code
+    load_user_function_code(user_function_code, docker_folder)
+    print('--- %s seconds ---' % (time.time() - start_time))
 
+    # build
+    run(['docker', 'build', '-t', docker_image_name, docker_folder])
     print('--- %s seconds ---' % (time.time() - start_time))
 
     # run
@@ -86,30 +84,23 @@ def run_docker(user_function_code, fid):
     print 'docker client listening on port ' + str(port)
 
     run_cmd = ['docker', 'run', '-d', '-p', str(port) + ':8080', docker_image_name]
-    container_id = check_output(run_cmd)[:12]
+    container_id = run(run_cmd)[:12]
     print 'docker container id: ' + container_id
-    # TODO: use docker API solution
-    # client = docker.from_env()
-    # ports = {str(port):'8080'}
-    # container = client.containers.run(docker_image_name, ports=ports, detach=True)
-
     print('--- %s seconds ---' % (time.time() - start_time))
 
     # block and wait for docker
     block_util_docker_is_up(port)
-
     print('--- %s seconds ---' % (time.time() - start_time))
 
     # forward request
     forward_request_to_docker(port)
 
     # stop docker image
-    stop_cmd = ['docker', 'stop', container_id]
-    output = check_output(stop_cmd)
+    output = run(['docker', 'stop', container_id])
     print 'docker container stopped ' + output
 
-    # TODO: use docker API solution
-    # container.stop()
+    # remove docker_folder
+    run(['rm', '-rf', docker_folder])
 
 def block_util_docker_is_up(port):
 
@@ -152,9 +143,6 @@ def forward_request_to_docker(port):
         print "\n========= Response ============="
         print response.read()
         print "\n========= Response End ========="
-
-def clean_up():
-    os.remove(NODEJS_TEMPLATE_DEPLOY)
 
 if __name__ == '__main__':
     main()
