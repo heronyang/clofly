@@ -1,4 +1,5 @@
-FROM node:boron
+# FROM node:alpine
+FROM node:slim
 
 # Create app directory
 RUN mkdir -p /usr/src/app

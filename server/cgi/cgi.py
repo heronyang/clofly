@@ -76,8 +76,8 @@ def run_docker(user_function_code, fid):
 
     # build
     build_cmd = ['docker', 'build', '-t', docker_image_name, NODEJS_TEMPLATE]
-    output = check_output(build_cmd)
-    print output
+    # output = check_output(build_cmd)
+    #print output
 
     print('--- %s seconds ---' % (time.time() - start_time))
 
