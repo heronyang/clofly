@@ -5,6 +5,7 @@ import random
 import time
 import httplib
 import docker
+import cgi
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from pprint import pprint
@@ -20,8 +21,6 @@ DOCKER_BUILD_SCRIPT         = './node-template/build.sh'
 DOCKER_IMAGE_NAME_PREFIX    = 'darf/nodejs-user-function-'
 
 SERVER_HEARTBEAT_PERIOD     = 0.1
-
-docker_client = docker.from_env()
 
 def main():
 
@@ -80,10 +79,13 @@ def run_docker(user_function_code, fid):
     port = random.randint(1024 ,65535)  # random
     print 'docker client listening on port ' + str(port)
 
-    # run_cmd = ['docker', 'run', '-d', '-p', str(port) + ':8080', docker_image_name]
-    # output = check_output(run_cmd)
-    # print output
-    client.containers.run(docker_image_name, ports={str(port):'8080'}, detach=True)
+    run_cmd = ['docker', 'run', '-d', '-p', str(port) + ':8080', docker_image_name]
+    container_id = check_output(run_cmd)[:12]
+    print 'docker container id: ' + container_id
+    # TODO: use docker API solution
+    # client = docker.from_env()
+    # ports = {str(port):'8080'}
+    # container = client.containers.run(docker_image_name, ports=ports, detach=True)
 
     # block and wait for docker
     block_util_docker_is_up(port)
@@ -92,7 +94,12 @@ def run_docker(user_function_code, fid):
     forward_request_to_docker(port)
 
     # stop docker image
-    stop_docker()
+    stop_cmd = ['docker', 'stop', container_id]
+    output = check_output(stop_cmd)
+    print 'docker container stopped ' + output
+
+    # TODO: use docker API solution
+    # container.stop()
 
 def block_util_docker_is_up(port):
 
@@ -128,11 +135,9 @@ def forward_request_to_docker(port):
     except httplib.BadStatusLine:
         pass
     else:
-        print "\n========= Response ========="
+        print "\n========= Response ============="
         print response.read()
-
-def stop_docker():
-    pass
+        print "\n========= Response End ========="
 
 def clean_up():
     os.remove(NODEJS_TEMPLATE_DEPLOY)
