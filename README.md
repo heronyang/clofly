@@ -1,4 +1,4 @@
-# Dasf - Deploy a Scalable Function
+# Clofly - Deploy a Scalable Function
 
 ## Abstract
 
@@ -10,7 +10,7 @@ In today's world, application developers spend high cost renting virtual machine
 - **api**: api for users to upload/download their function code
 - **www**: front end code for users to manage their function code online
 - **db**: database that stores user function code
-- **function**: demo function code for dasf users
+- **function**: demo function code for Clofly users
 
 ## Prerequisite for Local Machine
 
@@ -27,7 +27,7 @@ In today's world, application developers spend high cost renting virtual machine
 ## Deploy Function
 
     $ cd function
-    $ node ../api/dasf.js hello.js
+    $ node ../api/clofly.js hello.js
 
 ## Demo
 

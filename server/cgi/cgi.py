@@ -18,7 +18,7 @@ NODEJS_TEMPLATE             = './node-template/'
 NODEJS_TEMPLATE_ORIGINAL    = NODEJS_TEMPLATE + 'server-template.js'
 NODEJS_TEMPLATE_DEPLOY      = NODEJS_TEMPLATE + 'server.js'
 
-DOCKER_IMAGE_NAME_PREFIX    = 'darf/nodejs-user-function-'
+DOCKER_IMAGE_NAME_PREFIX    = 'clofly/nodejs-user-function-'
 
 SERVER_HEARTBEAT_PERIOD     = 0.01
 
@@ -49,7 +49,7 @@ def main():
 def retrieve_user_function_code(fid):
 
     client = MongoClient()
-    db = client.dasf
+    db = client.clofly
     uf = db.userfunctions.find_one({'_id': ObjectId(fid)})['code']
 
     print 'User Function: \n' + uf
@@ -76,8 +76,8 @@ def run_docker(user_function_code, fid):
 
     # build
     build_cmd = ['docker', 'build', '-t', docker_image_name, NODEJS_TEMPLATE]
-    # output = check_output(build_cmd)
-    #print output
+    output = check_output(build_cmd)
+    print output
 
     print('--- %s seconds ---' % (time.time() - start_time))
 

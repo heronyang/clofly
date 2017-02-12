@@ -3,7 +3,7 @@
  */
 module.exports = function(mongoose) {
 
-    const MONGODB_URI = 'mongodb://localhost/dasf';
+    const MONGODB_URI = 'mongodb://localhost/clofly';
 
     mongoose.Promise = global.Promise;
     mongoose.connect(MONGODB_URI);

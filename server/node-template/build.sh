@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t darf/nodejs-template .
+docker build -t clofly/nodejs-template .

@@ -1,5 +1,5 @@
 {
-  "name": "dasf-api",
+  "name": "clofly-api",
   "version": "1.0.0",
   "description": "Commandline interface for dasf usres to deploy their functions.",
   "main": "index.js",
