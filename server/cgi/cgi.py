@@ -4,7 +4,6 @@ import sys, os, subprocess
 import random
 import time
 import httplib
-import docker
 import cgi
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -17,15 +16,15 @@ NODEJS_TEMPLATE             = './node-template/'
 NODEJS_TEMPLATE_ORIGINAL    = NODEJS_TEMPLATE + 'server-template.js'
 NODEJS_TEMPLATE_DEPLOY      = NODEJS_TEMPLATE + 'server.js'
 
-DOCKER_BUILD_SCRIPT         = './node-template/build.sh'
 DOCKER_IMAGE_NAME_PREFIX    = 'darf/nodejs-user-function-'
 
-SERVER_HEARTBEAT_PERIOD     = 0.1
+SERVER_HEARTBEAT_PERIOD     = 0.01
+
+start_time = time.time()
 
 def main():
 
     print 'Content-Type: text/plain\n'
-    start_time = time.time()
 
     # get function id
     fid = os.environ['PATH_INFO'][1:]
@@ -33,8 +32,12 @@ def main():
     # retrieve function code
     uf = retrieve_user_function_code(fid)
 
+    print('--- %s seconds ---' % (time.time() - start_time))
+
     # run in docker
     run_docker(uf, fid)
+
+    print('--- %s seconds ---' % (time.time() - start_time))
 
     # clean up
     clean_up()
@@ -74,6 +77,7 @@ def run_docker(user_function_code, fid):
     output = check_output(build_cmd)
     print output
 
+    print('--- %s seconds ---' % (time.time() - start_time))
 
     # run
     port = random.randint(1024 ,65535)  # random
@@ -87,8 +91,12 @@ def run_docker(user_function_code, fid):
     # ports = {str(port):'8080'}
     # container = client.containers.run(docker_image_name, ports=ports, detach=True)
 
+    print('--- %s seconds ---' % (time.time() - start_time))
+
     # block and wait for docker
     block_util_docker_is_up(port)
+
+    print('--- %s seconds ---' % (time.time() - start_time))
 
     # forward request
     forward_request_to_docker(port)
