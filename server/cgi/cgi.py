@@ -5,12 +5,14 @@ import random
 import time
 import httplib
 import cgi
+import errno
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from pprint import pprint
 from shutil import copyfile
 from subprocess import check_output
 from urllib2 import Request, urlopen, URLError, HTTPError
+from socket import error as SocketError
 
 NODEJS_TEMPLATE             = './node-template/'
 NODEJS_TEMPLATE_ORIGINAL    = NODEJS_TEMPLATE + 'server-template.js'
@@ -125,6 +127,8 @@ def block_util_docker_is_up(port):
             pass
         except httplib.BadStatusLine:
             pass
+        except SocketError as e:
+            pass
         else:
             print 'okay, function is up'
             break
@@ -141,6 +145,8 @@ def forward_request_to_docker(port):
     except URLError as e:
         pass
     except httplib.BadStatusLine:
+        pass
+    except SocketError as e:
         pass
     else:
         print "\n========= Response ============="
