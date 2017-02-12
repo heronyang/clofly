@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 // read input filename
