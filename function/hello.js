@@ -1,3 +1,7 @@
 global.f = function (req, res) {
-    res.send('Hello World!!');
+    res.send('Hi! ' + getName());
+}
+
+function getName() {
+    return 'Clofly!!';
 }

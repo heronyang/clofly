@@ -43,7 +43,7 @@ function uploadFunctionCode(functionCode) {
 
         // success
         console.log('\n===========\n');
-        console.log('Function URL: http://localhost:8000/cgi/cgi.py/' + uf.id);
+        console.log('Function URL: http://clofly.heron.me:8000/cgi/cgi.py/' + uf.id);
         console.log('\n===========\n');
         mongoose.connection.close(function() {
             console.log('Database disconnected.');
