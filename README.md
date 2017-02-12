@@ -12,6 +12,13 @@ In today's world, application developers spend high cost renting virtual machine
 - **db**: database that stores user function code
 - **function**: demo function code for dasf users
 
+## Prerequisite for Local Machine
+
+- **Mongodb**: v3.2.12
+- **Docker**: v1.12.6
+- **Python**: v2.7 with `pip` installed
+- **node.js**: v6.9.5 with `npm` installed 
+
 ## Run Server
 
     $ cd server
