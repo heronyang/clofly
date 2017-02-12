@@ -18,6 +18,8 @@ NODEJS_TEMPLATE             = './node-template'
 DOCKER_IMAGE_NAME_PREFIX    = 'clofly/nodejs-user-function-'
 SERVER_HEARTBEAT_PERIOD     = 0.01
 
+MONGODB_SERVER              = 'ec2-54-92-149-222.compute-1.amazonaws.com'
+
 start_time = time.time()
 
 def main():
@@ -46,9 +48,13 @@ def run(cmd):
 
 def retrieve_user_function_code(fid):
 
-    client = MongoClient()
+    client = MongoClient(MONGODB_SERVER)
     db = client.clofly
     uf = db.userfunctions.find_one({'_id': ObjectId(fid)})['code']
+
+    if not bool(uf):
+        print 'Function not Found'
+        sys.exit(0)
 
     print 'User Function: \n' + uf
     return uf

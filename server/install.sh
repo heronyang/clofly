@@ -8,3 +8,5 @@ apt-cache policy docker-engine
 sudo apt-get install -y docker-engine
 sudo systemctl status docker
 sudo usermod -aG docker $(whoami)
+sudo apt install python-pip
+sudo pip install -r requirements.txt

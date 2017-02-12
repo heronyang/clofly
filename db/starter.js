@@ -19,8 +19,7 @@ var helloFunction = new models.UserFunction({
 helloFunction.save(function(err) {
 
     if(err) {
-        res.json({"message": errorMsg});
-        console.log(logPrefix + 'db insertion error');
+        console.log(err);
         return;
     }
 
