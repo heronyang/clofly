@@ -4,6 +4,7 @@ import sys, os, subprocess
 import random
 import time
 import httplib
+import docker
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from pprint import pprint
@@ -20,9 +21,12 @@ DOCKER_IMAGE_NAME_PREFIX    = 'darf/nodejs-user-function-'
 
 SERVER_HEARTBEAT_PERIOD     = 0.1
 
+docker_client = docker.from_env()
+
 def main():
 
     print 'Content-Type: text/plain\n'
+    start_time = time.time()
 
     # get function id
     fid = os.environ['PATH_INFO'][1:]
@@ -36,8 +40,7 @@ def main():
     # clean up
     clean_up()
 
-    # return
-    # return_http_response()
+    print('--- %s seconds ---' % (time.time() - start_time))
 
 def retrieve_user_function_code(fid):
 
@@ -72,13 +75,15 @@ def run_docker(user_function_code, fid):
     output = check_output(build_cmd)
     print output
 
+
     # run
     port = random.randint(1024 ,65535)  # random
     print 'docker client listening on port ' + str(port)
 
-    run_cmd = ['docker', 'run', '-d', '-p', str(port) + ':8080', docker_image_name]
-    output = check_output(run_cmd)
-    print output
+    # run_cmd = ['docker', 'run', '-d', '-p', str(port) + ':8080', docker_image_name]
+    # output = check_output(run_cmd)
+    # print output
+    client.containers.run(docker_image_name, ports={str(port):'8080'}, detach=True)
 
     # block and wait for docker
     block_util_docker_is_up(port)
@@ -87,6 +92,7 @@ def run_docker(user_function_code, fid):
     forward_request_to_docker(port)
 
     # stop docker image
+    stop_docker()
 
 def block_util_docker_is_up(port):
 
@@ -110,6 +116,7 @@ def block_util_docker_is_up(port):
 
 def forward_request_to_docker(port):
 
+    # TODO: should pack os.environ.items into the request
     url = 'http://localhost:' + str(port) + '/'
     req = Request(url)
     try:
@@ -124,14 +131,11 @@ def forward_request_to_docker(port):
         print "\n========= Response ========="
         print response.read()
 
+def stop_docker():
+    pass
+
 def clean_up():
     os.remove(NODEJS_TEMPLATE_DEPLOY)
-
-def return_http_response():
-    print 'Content-Type: text/plain\n'
-    print 'Requested path: ' + os.environ['PATH_INFO']
-    print '========= OS Environment Items =========\n'
-    pprint(os.environ.items())
 
 if __name__ == '__main__':
     main()

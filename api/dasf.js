@@ -41,7 +41,9 @@ function uploadFunctionCode(functionCode) {
         }
 
         // success
-        console.log('\n===========\nFunction ID: ' + uf.id + "\n===========\n");
+        console.log('\n===========\n');
+        console.log('Function URL: http://localhost:8000/cgi/cgi.py/' + uf.id);
+        console.log('\n===========\n');
         mongoose.connection.close(function() {
             console.log('Database disconnected.');
             process.exit(0);
