@@ -1,0 +1,8 @@
+[uwsgi]
+plugins = cgi
+socket = 127.0.0.1:9000
+uid = {root_user_name}
+gid = {root_user_name}
+cgi = /cgi={your_github_file_location}/server/cgi
+cgi-allowed-ext = .py
+cgi-helper = .py = python

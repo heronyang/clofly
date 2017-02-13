@@ -14,7 +14,7 @@ from subprocess import check_output
 from urllib2 import Request, urlopen, URLError, HTTPError
 from socket import error as SocketError
 
-NODEJS_TEMPLATE             = './node-template'
+NODEJS_TEMPLATE             = '../node-template'
 DOCKER_IMAGE_NAME_PREFIX    = 'clofly/nodejs-user-function-'
 SERVER_HEARTBEAT_PERIOD     = 0.01
 
