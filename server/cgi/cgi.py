@@ -14,7 +14,7 @@ from subprocess import check_output
 from urllib2 import Request, urlopen, URLError, HTTPError
 from socket import error as SocketError
 
-NODEJS_TEMPLATE             = '../node-template'
+NODEJS_TEMPLATE             = './node-template'
 DOCKER_IMAGE_NAME_PREFIX    = 'clofly/nodejs-user-function-'
 SERVER_HEARTBEAT_PERIOD     = 0.01
 
@@ -29,14 +29,8 @@ def main():
     # get function id
     fid = os.environ['PATH_INFO'][1:]
 
-    # retrieve function code
-    uf = retrieve_user_function_code(fid)
-
-    print('--- %s seconds ---' % (time.time() - start_time))
-
     # run in docker
-    run_docker(uf, fid)
-
+    run_docker(fid)
     print('--- %s seconds ---' % (time.time() - start_time))
 
 
@@ -46,39 +40,38 @@ def run(cmd):
     print output
     return output
 
-def retrieve_user_function_code(fid):
 
-    client = MongoClient(MONGODB_SERVER)
-    db = client.clofly
-    uf = db.userfunctions.find_one({'_id': ObjectId(fid)})['code']
-
-    if not bool(uf):
-        print 'Function not Found'
-        sys.exit(0)
-
-    print 'User Function: \n' + uf
-    return uf
-
-def load_user_function_code(uf, target_folder):
+def load_user_function_code(uf_url, uf_local_zip, uf_local_folder, target_folder):
 
     # copy template folder to target folder
     run(['cp', '-r', NODEJS_TEMPLATE, target_folder])
 
+    # download user code
+    run(['wget', uf_url])
+
+    # unzip
+    run(['unzip', uf_local_zip, '-d', uf_local_folder])
+
     # load code
-    uf_filepath = target_folder + '/user-function.js'
-    with open(uf_filepath, "w") as uf_js:
-        uf_js.write(uf)
-        print 'code loaded'
+    run(['cp', '-r', uf_local_folder, target_folder])
 
+    # loaded
+    print 'code loaded'
 
-def run_docker(user_function_code, fid):
+def run_docker(fid):
 
     # name/path setup
     docker_folder = NODEJS_TEMPLATE + '-' + fid
     docker_image_name = DOCKER_IMAGE_NAME_PREFIX + fid
 
+    # user function code
+    uf_url          = 'https://s3.amazonaws.com/clofly/uf-' + fid + '.zip'
+    uf_local_zip    = 'uf-' + fid + '.zip'
+    uf_local_folder = 'uf-' + fid + '/'
+
     # load user code
-    load_user_function_code(user_function_code, docker_folder)
+    load_user_function_code(uf_url, uf_local_zip, uf_local_folder,
+                            docker_folder)
     print('--- %s seconds ---' % (time.time() - start_time))
 
     # build
@@ -105,8 +98,8 @@ def run_docker(user_function_code, fid):
     output = run(['docker', 'stop', container_id])
     print 'docker container stopped ' + output
 
-    # remove docker_folder
-    run(['rm', '-rf', docker_folder])
+    # remove unneed files
+    run(['rm', '-rf', '*' + fid + '*'])
 
 def block_util_docker_is_up(port):
 

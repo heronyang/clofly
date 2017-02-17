@@ -63,7 +63,7 @@ var params = {
 
 	s3Params: {
 		Bucket: 'clofly',
-		Key: 'uf-' + fid,
+		Key: 'uf-' + fid + '.zip',
 	},
 };
 
@@ -82,5 +82,8 @@ uploader.on('end', function() {
 	fs.unlinkSync(zipFile);
 
 	console.log('Done.');
-});
+    console.log('\n=========== URL ============');
+    console.log('http://clofly.com/cgi/cgi.py/' + fid);
+    console.log('=========== URL ============\n');
 
+});
