@@ -53,7 +53,7 @@ def load_user_function_code(uf_url, uf_local_zip, uf_local_folder, target_folder
     run(['unzip', uf_local_zip, '-d', uf_local_folder])
 
     # load code
-    run(['cp', '-r', uf_local_folder, target_folder])
+    run(['rsync', '-a', uf_local_folder, target_folder])
 
     # loaded
     print 'code loaded'
@@ -78,6 +78,9 @@ def run_docker(fid):
     run(['docker', 'build', '-t', docker_image_name, docker_folder])
     print('--- %s seconds ---' % (time.time() - start_time))
 
+    # remove unneed files
+    run(['rm', '-r', uf_local_zip, uf_local_folder, docker_folder])
+
     # run
     port = random.randint(1024 ,65535)  # random
     print 'docker client listening on port ' + str(port)
@@ -97,9 +100,6 @@ def run_docker(fid):
     # stop docker image
     output = run(['docker', 'stop', container_id])
     print 'docker container stopped ' + output
-
-    # remove unneed files
-    run(['rm', '-rf', '*' + fid + '*'])
 
 def block_util_docker_is_up(port):
 
