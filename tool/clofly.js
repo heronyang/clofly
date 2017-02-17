@@ -32,26 +32,55 @@ console.log('User Function File: ', ufFile);
 console.log('Other Files: ', extraFiles);
 
 // rename user function file
-var fs = require('fs-extra')
+var fs = require('fs-extra');
 var ufTempFile = '/tmp/user-function.js';
-fs.copy(ufFile, ufTempFile, function(err) {
-    if(err) {
-        return console.error(err);
-    }
-    console.log('User function code copied locally.');
-});
+try {
+	fs.copySync(ufFile, ufTempFile);
+	console.log('User function code copied locally.');
+} catch (err) {
+	console.error(err)
+}
 
 // generate fid
 var crypto = require('crypto');
-var fid = crypto.randomBytes(20).toString('hex');
+var fid = crypto.randomBytes(8).toString('hex');
 
 // compress
 var AdmZip = require('adm-zip');
 var zip = new AdmZip();
 zip.addLocalFile(ufTempFile);
-for(var f in extraFiles) {
+for(var f of extraFiles) {
     zip.addLocalFile(f);
 }
-zip.writeZip('/tmp/' + fid + '.zip');
+var zipFile = '/tmp/' + fid + '.zip';
+zip.writeZip(zipFile);
 
 console.log('fid = ' + fid);
+
+// upload
+var params = {
+	localFile: zipFile,
+
+	s3Params: {
+		Bucket: 'clofly',
+		Key: 'uf-' + fid,
+	},
+};
+
+var uploader = client.uploadFile(params);
+uploader.on('error', function(err) {
+	console.error("unable to upload:", err.stack);
+});
+uploader.on('progress', function() {
+	console.log("progress", uploader.progressMd5Amount,
+			uploader.progressAmount, uploader.progressTotal);
+});
+uploader.on('end', function() {
+	console.log("done uploading");
+
+	// remove temp file
+	fs.unlinkSync(zipFile);
+
+	console.log('Done.');
+});
+
