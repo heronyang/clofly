@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 
-import sys, os, subprocess
+import sys, os
 import random
 import time
 import httplib
-import cgi
-import errno
-from pymongo import MongoClient
-from bson.objectid import ObjectId
-from pprint import pprint
+import boto3
 from shutil import copyfile
 from subprocess import check_output
 from urllib2 import Request, urlopen, URLError, HTTPError
@@ -17,8 +13,6 @@ from socket import error as SocketError
 NODEJS_TEMPLATE             = '../node-template'
 DOCKER_IMAGE_NAME_PREFIX    = 'clofly/nodejs-user-function-'
 SERVER_HEARTBEAT_PERIOD     = 0.01
-
-MONGODB_SERVER              = 'ec2-54-92-149-222.compute-1.amazonaws.com'
 
 start_time = time.time()
 
@@ -52,9 +46,10 @@ def run(cmd):
 
 def retrieve_user_function_code(fid):
 
-    client = MongoClient(MONGODB_SERVER)
-    db = client.clofly
-    uf = db.userfunctions.find_one({'_id': ObjectId(fid)})['code']
+    dynamodb    = boto3.resource('dynamodb', region_name='us-east-1')
+    table       = dynamodb.Table('clofly-user-function')
+    response    = table.get_item( Key={ 'fid': fid })
+    uf          = response['Item']['code']
 
     if not bool(uf):
         print 'Function not Found'

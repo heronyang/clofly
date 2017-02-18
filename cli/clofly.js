@@ -2,6 +2,7 @@
 'use strict';
 
 var URL_PREFIX = 'http://clofly.com/cgi/cgi.py/'
+var FID_LENGTH = 8;
 
 // read input filename
 var argv = process.argv.slice(2);
@@ -26,32 +27,34 @@ fs.readFile(filename, 'utf8', function (err, functionCode) {
 });
 
 // upload code to database
-var mongoose    = require('mongoose');
-var models      = require('../db/models')(mongoose);
-var connect     = require('../db/connect')(mongoose);
+var AWS = require("aws-sdk");
+AWS.config.update({
+    region: "us-east-1"
+});
+var dbClient = new AWS.DynamoDB.DocumentClient();
+var userFunctionTable = 'clofly-user-function';
+
 function uploadFunctionCode(functionCode) {
 
-    var userFunction = new models.UserFunction({
-        code: functionCode
-    });
+    var crypto = require('crypto');
+    var fid = crypto.randomBytes(FID_LENGTH).toString('hex');
+    var userFunction = {
+        'fid': fid,
+        'code': functionCode
+    };
+	var params = {
+		TableName: userFunctionTable,
+		Item: userFunction,
+	};
 
-    userFunction.save(function(err, uf) {
-
-        if(err) {
-            res.json({'message': errorMsg});
-            console.log(logPrefix + 'db insertion error');
-            return;
-        }
-
-        // success
-        console.log('\n===========\n');
-        console.log('Function URL: ' + URL_PREFIX + uf.id);
-        console.log('\n===========\n');
-        mongoose.connection.close(function() {
-            console.log('Database disconnected.');
-            process.exit(0);
-        });
-
-    });
+	dbClient.put(params, function(err, data) {
+		if(err) {
+			// error
+			console.log("Error: ", JSON.stringify(err, null, 2));
+			return;
+		}
+		// success
+        console.log('Done. Deployed URL: ' + URL_PREFIX + fid);
+	});
 
 }
