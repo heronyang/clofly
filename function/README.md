@@ -2,10 +2,10 @@
 
 This is a demo code for Dasf functions (for developers).
 
+## Setup
+
+    $ alias clofy="nodejs <clofly_folder>/cli/clofly"
+
 ## Usage
 
-    $ node ../api/clofly.js hello.js
-
-or
-
-    $ nodejs ../api/clofly.js hello.js
+    $ clofly hello.js

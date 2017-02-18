@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+var URL_PREFIX = 'http://clofly.com/cgi/cgi.py/'
+
 // read input filename
 var argv = process.argv.slice(2);
 if(argv.length != 1) {
@@ -43,7 +45,7 @@ function uploadFunctionCode(functionCode) {
 
         // success
         console.log('\n===========\n');
-        console.log('Function URL: http://clofly.heron.me:8000/cgi/cgi.py/' + uf.id);
+        console.log('Function URL: ' + URL_PREFIX + uf.id);
         console.log('\n===========\n');
         mongoose.connection.close(function() {
             console.log('Database disconnected.');
