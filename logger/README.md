@@ -12,9 +12,14 @@ If you haven't installed them, you may run the bash script `sudo ./pre_install.s
 ##Installation
 
 1. Copy the repo using `git clone https://github.com/getsentry/onpremise.git`.
-2. Run `docker-compose run --rm web config generate-secret-key` and put the `SENTRY_SECRET_KEY` into `docker_compose.yml`
-3. Run `sudo ./install.sh`. During intallation, you will be promted to create the superuser on the commandline. During this step, the redis docker and pstgres docker will also be run and built.
+2. Move the `install.sh` to the git repo you just cloned. `mv ./install.sh {onpremise DIR}`
+3. Run `docker-compose run --rm web config generate-secret-key` and put the `SENTRY_SECRET_KEY` into `docker_compose.yml`
+4. Run `sudo ./install.sh`. During intallation, you will be promted to create the superuser on the commandline. During this step, the redis docker and pstgres docker will also be run and built.
 
 ## Run the server
-1. You can access the web UI at `http://localhost:9000` by default.  
+1. You can access the web UI at `http://localhost:9000` by default.
+
+## Stop the server
+1. Run `sudo docker ps -a` and found the corresponding sentry containers.
+2. Run `sudo docker pause {CONTAINER ID}` to stop the docker.
 
