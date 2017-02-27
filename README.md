@@ -32,3 +32,7 @@ In today's world, application developers spend high cost renting virtual machine
 ## Demo
 
 [![Demo](https://img.youtube.com/vi/JqEliUz-NzU/0.jpg)](https://www.youtube.com/watch?v=JqEliUz-NzU)
+
+For developers (server behavior step-by-step):
+
+[![Demo](https://img.youtube.com/vi/G2oxQYaj7zU/0.jpg)](https://www.youtube.com/watch?v=G2oxQYaj7zU)
