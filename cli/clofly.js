@@ -1,49 +1,40 @@
 #!/usr/bin/env node
 'use strict';
 
-var URL_PREFIX = 'http://clofly.com/cgi/cgi.py/'
-var FID_LENGTH = 8;
-
-// read input filename
-var argv = process.argv.slice(2);
-if(argv.length != 1) {
-    console.error('Invalide filename input');
-    process.exit();
-}
-var filename = argv[0];
-
-// read the input file into buffer
 var fs = require('fs');
-fs.readFile(filename, 'utf8', function (err, functionCode) {
+var config = require('./config.json');
 
-    // if err
-	if(err) {
-		return console.log(err);
-	}
+function getFunctionFilename() {
+    // get filename
+    var argv = process.argv.slice(2);
+    if(argv.length != 1) {
+        console.error('Invalide filename input');
+        process.exit();
+    }
 
-    // if not, upload to database
-    uploadFunctionCode(functionCode);
+    // read the file
+    var filename = argv[0];
+    return filename;
+}
 
-});
+function readFunctionFromFile(filename) {
+    return fs.readFileSync(filename, 'utf8');
+}
 
-// upload code to database
-var AWS = require("aws-sdk");
-AWS.config.update({
-    region: "us-east-1"
-});
-var dbClient = new AWS.DynamoDB.DocumentClient();
-var userFunctionTable = 'clofly-user-function';
+function uploadFunction(functionCode) {
 
-function uploadFunctionCode(functionCode) {
+    var AWS = require("aws-sdk");
+    AWS.config.update({ region: "us-east-1" });
+    var dbClient = new AWS.DynamoDB.DocumentClient();
 
     var crypto = require('crypto');
-    var fid = crypto.randomBytes(FID_LENGTH).toString('hex');
+    var fid = crypto.randomBytes(config.FID_LENGTH).toString('hex');
     var userFunction = {
         'fid': fid,
         'code': functionCode
     };
 	var params = {
-		TableName: userFunctionTable,
+		TableName: config.DB_TABLE_NAME,
 		Item: userFunction,
 	};
 
@@ -54,7 +45,14 @@ function uploadFunctionCode(functionCode) {
 			return;
 		}
 		// success
-        console.log('Done. Deployed URL: ' + URL_PREFIX + fid);
+        console.log('Okay, deployed URL: ' + config.URL_PREFIX + fid);
 	});
 
+}
+
+// main
+if (require.main === module) {
+    var filename = getFunctionFilename();
+    var f = readFunctionFromFile(filename);
+    uploadFunction(f);
 }
