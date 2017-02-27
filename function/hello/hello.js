@@ -1,4 +1,4 @@
 global.f = function (req, res) {
-    // var randomstring = require("randomstring");
+    var randomstring = require("randomstring");
     res.send('Hello!');
 }
