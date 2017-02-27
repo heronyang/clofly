@@ -11,3 +11,4 @@ sudo systemctl status docker
 sudo usermod -aG docker $(whoami)
 sudo apt install python-pip
 sudo pip install -r requirements.txt
+npm install -g auto-install
