@@ -10,7 +10,7 @@ from subprocess import check_output
 from urllib2 import Request, urlopen, URLError, HTTPError
 from socket import error as SocketError
 
-NODEJS_TEMPLATE         = '../node-template'
+NODEJS_TEMPLATE         = './node-template'
 IMAGE_NAME_PREFIX       = 'clofly/nodejs-user-function-'
 HEARTBEAT_PERIOD        = 0.01
 
@@ -62,8 +62,13 @@ class NodeFunctionManager():
 
     def run(self, fid, directory):
 
+        print 'start building docker...'
         image_name          = self.__build_docker(fid, directory)
+
+        print 'start running docker...'
         port, container_id  = self.__run_docker(image_name)
+
+        print 'waiting for docker...'
         self.__wait_until_ready(port)
 
         return image_name, port, container_id

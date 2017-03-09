@@ -33,7 +33,7 @@ def main():
     print('--- %s seconds ---' % (time.time() - start_time))
 
     # run in docker
-    run_docker(uf, fid)
+    run_docker(fid, uf)
 
     print('--- %s seconds ---' % (time.time() - start_time))
 
@@ -70,14 +70,14 @@ def load_user_function_code(uf, target_folder):
         print 'code loaded'
 
 
-def run_docker(user_function_code, fid):
+def run_docker(fid, uf):
 
     # name/path setup
     docker_folder = NODEJS_TEMPLATE + '-' + fid
     docker_image_name = DOCKER_IMAGE_NAME_PREFIX + fid
 
     # load user code
-    load_user_function_code(user_function_code, docker_folder)
+    load_user_function_code(uf, docker_folder)
     print('--- %s seconds ---' % (time.time() - start_time))
 
     # build
