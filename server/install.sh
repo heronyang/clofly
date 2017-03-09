@@ -1,13 +1,23 @@
 #!/bin/sh
 # Ubuntu 16.04
 
+if [ ! -f uwsgi.ini ]; then
+    echo "Not found: uwsgi.ini"
+    exit
+fi
+
+if [ ! -f uwsgi.service ]; then
+    echo "Not found: uwsgi.service"
+    exit
+fi
+
 sudo apt update
 
 # install docker
-echo checking if docker is installed...
+echo Checking if docker is installed...
 if [ ! $(which docker) ]
     then
-        echo installing docker...
+        echo Installing docker...
         sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
         sudo apt-add-repository 'deb https://apt.dockerproject.org/repo ubuntu-xenial main'
         apt-cache policy docker-engine
@@ -17,19 +27,24 @@ if [ ! $(which docker) ]
 fi
 
 # install pip
-echo checking if pip is installed...
+echo Checking if pip is installed...
 if [ ! $(which pip) ]
     then
-        echo installing pip...
+        echo Installing pip...
         sudo apt install -y python-pip
 fi
 sudo pip install -r requirements.txt
 
 # install uwsgi
-echo checking if uwsgi is installed...
+echo Checking if uwsgi is installed...
 if [ ! $(which uwsgi) ]
     then
-        echo installing uwsgi...
+        echo Installing uwsgi...
         sudo apt-get install libpcre3 libpcre3-dev
         sudo pip install uwsgi
 fi
+
+sudo cp uwsgi.service /etc/systemd/system/uwsgi.service
+sudo systemctl daemon-reload
+sudo systemctl start uwsgi
+sudo systemctl status uwsgi

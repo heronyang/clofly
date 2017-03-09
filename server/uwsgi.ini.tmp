@@ -1,0 +1,8 @@
+[uwsgi]
+uid = {user_name}
+gid = {user_name}
+http-socket = :80
+project=clofly-service
+wsgi-file=/wsgi={your_github_file_location}server/uwsgi_server.py
+master=true
+processes=5
