@@ -10,9 +10,10 @@ from subprocess import check_output
 from urllib2 import Request, urlopen, URLError, HTTPError
 from socket import error as SocketError
 
-NODEJS_TEMPLATE         = './node-template'
-IMAGE_NAME_PREFIX       = 'clofly/nodejs-user-function-'
-HEARTBEAT_PERIOD        = 0.01
+NODEJS_TEMPLATE     = './node-template'
+IMAGE_NAME_PREFIX   = 'clofly/nodejs-user-function-'
+AWS_REGION          = 'us-west-2'
+HEARTBEAT_PERIOD    = 0.01
 
 # Setting only for debug mode
 if 'CLOFLY_DEBUG' in os.environ:
@@ -33,8 +34,8 @@ class NodeFunctionManager():
 
     def __download_function(self, fid):
 
-        dynamodb    = boto3.resource('dynamodb', region_name='us-east-1')
-        table       = dynamodb.Table('clofly-user-function')
+        db          = boto3.resource('dynamodb', region_name=AWS_REGION)
+        table       = db.Table('user-function')
         response    = table.get_item( Key={ 'fid': fid })
         uf          = response['Item']['code']
 
@@ -62,10 +63,10 @@ class NodeFunctionManager():
 
     def run(self, fid, directory):
 
-        print 'start building docker...'
+        print 'Start building docker...'
         image_name          = self.__build_docker(fid, directory)
 
-        print 'start running docker...'
+        print 'Start running docker...'
         port, container_id  = self.__run_docker(image_name)
 
         print 'waiting for docker...'

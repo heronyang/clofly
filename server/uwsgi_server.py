@@ -1,6 +1,6 @@
 import re
 
-from urllib2 import Request
+from urllib2 import Request, urlopen
 from node_function_manager import NodeFunctionManager
 
 FID_LENGTH = 16
@@ -16,6 +16,8 @@ def application(env, start_response):
 
     # load
     nfm = NodeFunctionManager()
+
+    print 'Running fid: ' + fid
     directory = nfm.load(fid)
 
     # run
@@ -39,7 +41,8 @@ def application(env, start_response):
 def forward_request(port, env):
 
     url = 'http://localhost:' + str(port) + '/'
-    req = Request(url, headers = env)
+    request = Request(url, headers = env)
+    response = urlopen(request)
     return response.read()
 
 def get_fid(request_uri):

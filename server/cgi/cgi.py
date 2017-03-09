@@ -113,10 +113,10 @@ def block_util_docker_is_up(port):
     while True:
         time.sleep(SERVER_HEARTBEAT_PERIOD)
         url = 'http://localhost:' + str(port) + '/heartbeat'
-        req = Request(url)
+        request = Request(url)
         print 'heartbeat sent to ' + url
         try:
-            response = urlopen(req)
+            response = urlopen(request)
         except HTTPError as e:
             pass
         except URLError as e:
@@ -133,9 +133,9 @@ def forward_request_to_docker(port):
 
     # TODO: should pack os.environ.items into the request
     url = 'http://localhost:' + str(port) + '/'
-    req = Request(url)
+    request = Request(url)
     try:
-        response = urlopen(req)
+        response = urlopen(request)
     except HTTPError as e:
         pass
     except URLError as e:
