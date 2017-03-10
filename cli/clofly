@@ -1,0 +1,128 @@
+#!/usr/bin/env node
+'use strict';
+
+var fs 		    = require('fs');
+var crypto      = require('crypto');
+var request     = require('request');
+var config 	    = require('./config.json');
+
+var argv 	    = require('yargs')
+    .usage('Usage: $0 <command> [options]')
+    .command({
+        command: 'start <filename>',
+        aliases: ['run', 'deploy'],
+        desc: 'Start running an user function on clofly',
+        handler: (argv) => {
+            command_start(argv.filename);
+        }
+    })
+    .command({
+        command: 'stop <function_name>',
+        desc: 'Stop running an user function on clofly',
+        handler: (argv) => {
+            command_stop(argv.user_function_name);
+        }
+    })
+    .example('$0 start hello.js', 'Start running hello function on clofly')
+    .demandCommand()
+    .help('h')
+    .alias('h', 'help')
+    .argv;
+
+/*
+ * Command: start
+ */
+function command_start(filename) {
+
+    var fid = generateFid();
+    var userFunction = readFunctionFromFile(filename);
+
+    uploadFunction(fid, userFunction);
+
+}
+
+function generateFid() {
+    return crypto.randomBytes(config.FID_LENGTH).toString('hex');
+}
+
+function readFunctionFromFile(filename) {
+
+	if(!fs.existsSync(filename)) {
+        console.log('File not exists: ' + filename);
+        process.exit(1);
+	}
+
+    return fs.readFileSync(filename, 'utf8');
+
+}
+
+function uploadFunction(fid, userFunction) {
+
+    var params = {
+        fid: fid,
+        code: userFunction
+    }
+
+	request.post(
+		config.API_URL + 'upload',
+		{ json: params },
+
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+                // OK
+                console.log('Okay, deployed URL: ' + config.SERVICE_URL + fid);
+			} else if(!error && response.statusCode == 401){
+                // Unauthorized
+                login(uploadFunction, [fid, userFunction]);
+            } else {
+                console.log('Error');
+            }
+		}
+
+	);
+
+}
+
+function login(callback, callbackParams) {
+
+	if(!fs.existsSync(config.USER_CONFIG)) {
+        console.log('Please provide valid username/password file at '
+            + config.USER_CONFIG);
+        process.exit(1);
+	}
+
+    var userConfig  = require(config.USER_CONFIG);
+
+    var params = {
+        username: userConfig.username,
+        key: userConfig.key
+    }
+
+	request.post(
+
+		config.API_URL + 'login',
+		{ json: params },
+
+		function (error, response, body) {
+			if (!error && response.statusCode == 200) {
+                // OK
+                console.log('Logged in succeed');
+                // try the operation again
+                callback.apply(this, callbackParams);
+            } else {
+                // Failed
+                console.log('Error');
+            }
+		}
+
+	);
+
+}
+
+/*
+ * Command: stop
+ */
+function command_stop(userFunctionName) {
+    // TODO
+    console.log('Stopping ' + userFunctionName + ' is not completed');
+}
