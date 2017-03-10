@@ -1,12 +1,16 @@
 # Clofly - API
 
-Commandline interface for dasf usres to deploy their functions.
+Commandline interface for clofly usres to deploy their functions.
 
-## Developing Stage - Put Your Credentials
+## Dependencies
 
-To access AWS database, add in ```~/.aws/credentials```:
+- node
+- npm
 
-    [default]
-    aws_access_key_id = THEACCESSKEYHERE
-    aws_secret_access_key = THESECRETACCESSKEYHERE
+## Install
 
+    $ npm install
+
+## Usage
+
+    $ ./clofly -h
