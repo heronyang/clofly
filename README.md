@@ -1,4 +1,4 @@
-# Clofly - Deploy a Scalable Function
+# ![Clofly](/icon/icon-s.png?raw=true "Clofly") - A Scalable Serverless Service
 
 ## Abstract
 
