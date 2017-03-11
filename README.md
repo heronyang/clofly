@@ -8,15 +8,13 @@ In today's world, application developers spend high cost renting virtual machine
 
 ## Structure
 
-- **server**: backend cgi code for Dasf, once there's a request, the cgi program will pull out the function from database then execute it in a docker container
-- **api**: api for users to upload/download their function code
-- **www**: front end code for users to manage their function code online
-- **db**: database that stores user function code
+- **server**: uwsgi server code
+- **api**: RESTFul api for our tools to interact with the database
+- **cli**: command line interface for users to deploy and manage their function code
 - **function**: demo function code for Clofly users
 
 ## Prerequisite for Local Machine
 
-- **Mongodb**: v3.2.12
 - **Docker**: v1.12.6
 - **Python**: v2.7 with `pip` installed
 - **node.js**: v6.9.5 with `npm` installed 
