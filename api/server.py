@@ -9,15 +9,18 @@ app = Flask(__name__)
 
 # DynamoDB
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('user')
 
 @app.route("/login/", methods = ['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
 
-    if username == None or password == None:
-        abort(400)  # Bad Request
+    table = dynamodb.Table('user')
+
+    params = request.get_json()
+    if not 'username' in params  or not 'password' in params:
+        abort(400)
+
+    username = params['username']
+    password = params['password']
 
     response = table.get_item(
         Key={
@@ -36,10 +39,26 @@ def hash(s):
     h.update(s)
     return h.hexdigest()
 
-@app.route("/upload/")
+@app.route("/upload/", methods = ['POST'])
 def upload():
-    return "Hello World!"
+
+    table = dynamodb.Table('user-function')
+
+    params = request.get_json()
+    if not 'fid' in params  or not 'code' in params:
+        abort(400)
+    
+    fid     = params['fid']
+    code    = params['code']
+
+    table.put_item(
+        Item={
+            'fid': fid,
+            'code': code
+        }
+    )
+
+    return 'Upload Succeed'
 
 if __name__ == "__main__":
     app.run()
-

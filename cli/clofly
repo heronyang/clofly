@@ -29,6 +29,8 @@ var argv        = require('yargs')
     .alias('h', 'help')
     .argv;
 
+var nRetries    = 1;
+
 /*
  * Command: start
  */
@@ -64,7 +66,7 @@ function uploadFunction(fid, userFunction) {
     }
 
     request.post(
-        config.API_URL + 'upload',
+        config.API_URL + 'upload/',
         { json: params },
 
         function (error, response, body) {
@@ -75,7 +77,8 @@ function uploadFunction(fid, userFunction) {
                 // Unauthorized
                 login(uploadFunction, [fid, userFunction]);
             } else {
-                console.log('Error');
+                console.log('Error: ' + error);
+                console.log(response);
             }
         }
 
@@ -108,10 +111,16 @@ function login(callback, callbackParams) {
                 // OK
                 console.log('Logged in succeed');
                 // try the operation again
-                callback.apply(this, callbackParams);
+                if(nRetries >= 1) {
+                    nRetries --;
+                    callback.apply(this, callbackParams);
+                } else {
+                    console.log('Logged in succeed but operation failed');
+                }
             } else {
                 // Failed
-                console.log('Error');
+                console.log('Error: ' + error);
+                console.log(response);
             }
         }
 
