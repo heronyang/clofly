@@ -12,6 +12,7 @@ if [ ! -f uwsgi.service ]; then
 fi
 
 sudo apt update
+sudo apt install -y uwsgi-plugin-python
 
 # install docker
 echo Checking if docker is installed...
@@ -20,6 +21,7 @@ if [ ! $(which docker) ]
         echo Installing docker...
         sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
         sudo apt-add-repository 'deb https://apt.dockerproject.org/repo ubuntu-xenial main'
+        sudo apt update
         apt-cache policy docker-engine
         sudo apt install -y docker-engine
         sudo systemctl status docker
@@ -40,11 +42,15 @@ echo Checking if uwsgi is installed...
 if [ ! $(which uwsgi) ]
     then
         echo Installing uwsgi...
-        sudo apt-get install libpcre3 libpcre3-dev
-        sudo pip install uwsgi
+        sudo apt-get install -y libpcre3 libpcre3-dev
+        sudo apt-get install -y uwsgi
 fi
 
-sudo cp uwsgi.service /etc/systemd/system/uwsgi.service
-sudo systemctl daemon-reload
-sudo systemctl start uwsgi
-sudo systemctl status uwsgi
+current_dir=$(pwd)
+echo $current_dir
+sudo cp uwsgi.ini /etc/uwsgi/sites-available/uwsgi.ini
+cd /etc/uwsgi/sites-enable
+sudo ln -s ../apps-available/uwsgi.ini
+cd $current_dir
+
+sudo service uwsgi start
