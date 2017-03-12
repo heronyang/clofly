@@ -3,6 +3,7 @@ import re
 import logging
 import logstash
 import sys
+import datetime
 
 from urllib2 import Request, urlopen
 from node_function_manager import NodeFunctionManager
@@ -12,7 +13,7 @@ LOG_HOST    = 'log.clofly.com'
 
 def application(env, start_response):
 
-    log_test()
+    start_time = datetime.datetime.now()
 
     try:
         fid = get_fid(env['REQUEST_URI'])
@@ -43,6 +44,10 @@ def application(env, start_response):
     nfm.stop(container_id, directory)
 
     start_response('200 OK', [('Content-Type','text/plain')])
+
+    end_time = datetime.datetime.now()
+    log_request(fid, (end_time - start_time).microseconds, env)
+
     return [uf_response]
 
 def forward_request(port, env):
@@ -59,13 +64,14 @@ def get_fid(request_uri):
         raise Exception('Invalid fid in url')
     return m.group(0)[1:]   # remove first char '/'
 
-def log_test():
+def log_request(fid, duration, env):
 
     logger = logging.getLogger('traffic')
     logger.setLevel(logging.INFO)
-    logger.addHandler(logstash.LogstashHandler(LOG_HOST, 5000, version=1, message_type='apple'))
-    logger.info('request')
+    logger.addHandler(logstash.LogstashHandler(LOG_HOST, 5000, version=1, message_type=fid))
 
-    #logger.error('python-logstash: test logstash error message.')
-    #logger.info('python-logstash: test logstash info message.')
-    #logger.warning('python-logstash: test logstash warning message.')
+    extra = {
+        'duration': duration,
+        'env': str(env)
+    }
+    logger.info('request', extra=extra)
