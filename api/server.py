@@ -10,8 +10,9 @@ app = Flask(__name__)
 # DynamoDB
 dynamodb = boto3.resource('dynamodb')
 app.secret_key = os.environ.get('FLASK_SECRET_KEY')
+app.secret_key = '12345'
 
-@app.route("/login/", methods = ['POST'])
+@app.route("/login", methods = ['POST'])
 def login():
 
     if 'username' in session:
@@ -21,7 +22,6 @@ def login():
 
     params = request.get_json()
     
-    print(params)
     if not 'username' in params  or not 'password' in params:
         abort(400)
 
@@ -47,8 +47,11 @@ def hash(s):
     h.update(s.encode('utf-8'))
     return h.hexdigest()
 
-@app.route("/upload/", methods = ['POST'])
+@app.route("/upload", methods = ['POST'])
 def upload():
+
+    if not 'username' in session:
+        abort(401)
 
     table = dynamodb.Table('user-function')
 
@@ -68,7 +71,7 @@ def upload():
 
     return 'Upload Succeed'
 
-@app.route('/logout/')
+@app.route('/logout', methods = ['POST'])
 def logout():
     session.pop('username', None)
     return 'Logout Succeed'
