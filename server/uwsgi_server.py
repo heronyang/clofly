@@ -1,11 +1,18 @@
 import re
 
+import logging
+import logstash
+import sys
+
 from urllib2 import Request, urlopen
 from node_function_manager import NodeFunctionManager
 
-FID_LENGTH = 16
+FID_LENGTH  = 16
+LOG_HOST    = 'log.clofly.com'
 
 def application(env, start_response):
+
+    log_test()
 
     try:
         fid = get_fid(env['REQUEST_URI'])
@@ -51,3 +58,14 @@ def get_fid(request_uri):
     if m == None:
         raise Exception('Invalid fid in url')
     return m.group(0)[1:]   # remove first char '/'
+
+def log_test():
+
+    logger = logging.getLogger('traffic')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logstash.LogstashHandler(LOG_HOST, 5000, version=1, message_type='apple'))
+    logger.info('request')
+
+    #logger.error('python-logstash: test logstash error message.')
+    #logger.info('python-logstash: test logstash info message.')
+    #logger.warning('python-logstash: test logstash warning message.')
