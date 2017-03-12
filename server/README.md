@@ -1,9 +1,13 @@
 # Clofly - Server
 
+## Prepare
+
+Setup you aws ```credentials``` and ```config``` file under ~/.aws. For deamon, make sure the files are under /root.
+
 ## Installation
 
-    $ pip install -r requirements.txt
+    $ ./install.sh
 
 ## Run (Local Test)
 
-    $ ./simple-server.py
+    $ ./run.sh

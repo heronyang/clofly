@@ -12,7 +12,6 @@ if [ ! -f uwsgi.service ]; then
 fi
 
 sudo apt update
-sudo apt install -y uwsgi-plugin-python
 
 # install docker
 echo Checking if docker is installed...
@@ -24,7 +23,6 @@ if [ ! $(which docker) ]
         sudo apt update
         apt-cache policy docker-engine
         sudo apt install -y docker-engine
-        sudo systemctl status docker
         sudo usermod -aG docker $(whoami)
 fi
 
@@ -44,12 +42,13 @@ if [ ! $(which uwsgi) ]
         echo Installing uwsgi...
         sudo apt-get install -y libpcre3 libpcre3-dev
         sudo apt-get install -y uwsgi
+        sudo apt install -y uwsgi-plugin-python
 fi
 
 current_dir=$(pwd)
 echo $current_dir
-sudo cp uwsgi.ini /etc/uwsgi/sites-available/uwsgi.ini
-cd /etc/uwsgi/sites-enable
+sudo cp uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini
+cd /etc/uwsgi/apps-enabled/
 sudo ln -s ../apps-available/uwsgi.ini
 cd $current_dir
 
