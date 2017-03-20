@@ -29,11 +29,7 @@ def login():
     username = params['username']
     password = params['password']
 
-    response = table.get_item(
-        Key={
-            'username': username
-        }
-    )
+    response = table.get_item( Key={ 'username': username })
     if 'Item' in response:
         db_password = response['Item']['password']
         if hash(password) == db_password:
@@ -67,7 +63,7 @@ def upload():
     # store at /fid/version
     table.put_item( Item={ 'fid': fid + '/' + version, 'code': code })
 
-    return 'Deployed at ' + CLOFLY_SERVER_URL + fid
+    return 'Deployed at ' + CLOFLY_SERVER_URL + fid + ' (version: ' + str(version) + ')'
 
 def insert_new_version(fid):
 
