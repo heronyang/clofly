@@ -3,8 +3,16 @@
 
 var fs          = require('fs');
 var crypto      = require('crypto');
+var path        = require('path');
 var request     = require('request');
 var config      = require('./config.json');
+var expandTilde = require('expand-tilde');
+
+try {
+    config = require('./config.local.json');
+	console.log('Local config file is found');
+} catch (ex) {
+}
 
 var argv        = require('yargs')
     .usage('Usage: $0 <command> [options]')
@@ -13,15 +21,18 @@ var argv        = require('yargs')
         aliases: ['run', 'deploy'],
         desc: 'Start running an user function on clofly',
         handler: (argv) => {
-            command_start(argv.filename);
+            commandStart(argv.filename);
         }
     })
     .command({
         command: 'stop <function_name>',
         desc: 'Stop running an user function on clofly',
         handler: (argv) => {
-            command_stop(argv.user_function_name);
+            commandStop(argv.user_function_name);
         }
+    })
+    .command('*', 'invalid command', () => {}, (argv) => {
+        console.log('Invalid command')
     })
     .example('$0 start hello.js', 'Start running hello function on clofly')
     .demandCommand()
@@ -30,16 +41,18 @@ var argv        = require('yargs')
     .argv;
 
 var nRetries    = 1;
+var cookie      = null;
 
 /*
  * Command: start
  */
-function command_start(filename) {
+function commandStart(filename) {
 
-    var fid = generateFid();
+    var fname = path.basename(filename).split('.')[0];
     var userFunction = readFunctionFromFile(filename);
 
-    uploadFunction(fid, userFunction);
+    console.log('Uploading fname: ' + fname);
+    uploadFunction(fname, userFunction);
 
 }
 
@@ -58,24 +71,28 @@ function readFunctionFromFile(filename) {
 
 }
 
-function uploadFunction(fid, userFunction) {
+function uploadFunction(fname, userFunction) {
 
     var params = {
-        fid: fid,
+        fname: fname,
         code: userFunction
     }
 
     request.post(
-        config.API_URL + 'upload/',
-        { json: params },
+
+        config.API_URL + 'upload',
+        {
+            json: params,
+            headers: { Cookie: cookie }
+        },
 
         function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 // OK
-                console.log('Okay, deployed URL: ' + config.SERVICE_URL + fid);
+                console.log(body);
             } else if(!error && response.statusCode == 401){
                 // Unauthorized
-                login(uploadFunction, [fid, userFunction]);
+                login(uploadFunction, [fname, userFunction]);
             } else {
                 console.log('Error: ' + error);
                 console.log(response);
@@ -88,17 +105,29 @@ function uploadFunction(fid, userFunction) {
 
 function login(callback, callbackParams) {
 
-    if(!fs.existsSync(config.USER_CONFIG)) {
-        console.log('Please provide valid username/password file at '
-            + config.USER_CONFIG);
+    if(nRetries >= 1) {
+        nRetries --;
+    } else {
+        console.log('Login succeed, but operation failed');
         process.exit(1);
     }
 
-    var userConfig  = require(config.USER_CONFIG);
+    var userConfigPath = expandTilde(config.USER_CONFIG);
+
+	try {
+		fs.statSync(userConfigPath);
+		console.log('Config file exists at ' + config.USER_CONFIG);
+	} catch (e) {
+        console.log('Please provide valid username/password file at '
+            + config.USER_CONFIG);
+        process.exit(1);
+	}
+
+    var userConfig  = require(userConfigPath);
 
     var params = {
         username: userConfig.username,
-        key: userConfig.key
+        password: userConfig.password
     }
 
     request.post(
@@ -109,14 +138,10 @@ function login(callback, callbackParams) {
         function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 // OK
-                console.log('Logged in succeed');
+                console.log('Login succeed');
+                cookie = response.headers['set-cookie']
                 // try the operation again
-                if(nRetries >= 1) {
-                    nRetries --;
-                    callback.apply(this, callbackParams);
-                } else {
-                    console.log('Logged in succeed but operation failed');
-                }
+                callback.apply(this, callbackParams);
             } else {
                 // Failed
                 console.log('Error: ' + error);
@@ -131,7 +156,7 @@ function login(callback, callbackParams) {
 /*
  * Command: stop
  */
-function command_stop(userFunctionName) {
+function commandStop(userFunctionName) {
     // TODO
     console.log('Stopping ' + userFunctionName + ' is not completed');
 }

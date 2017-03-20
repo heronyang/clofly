@@ -1,27 +1,28 @@
 #!/usr/bin/env python
-import boto3
-from Crypto.Hash import SHA256
-from flask import Flask, abort, request, session, escape
 import os
+import boto3
+from flask import Flask, abort, request, session, escape
+from helper import hash
+
+CLOFLY_SERVER_URL = 'http://clofly.com/'
 
 # Flask app
 app = Flask(__name__)
+app.url_map.strict_slashes = False
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_flask_key')
 
 # DynamoDB
 dynamodb = boto3.resource('dynamodb')
-app.secret_key = os.environ.get('FLASK_SECRET_KEY')
 
-@app.route("/login/", methods = ['POST'])
+@app.route("/login", methods = ['POST'])
 def login():
 
     if 'username' in session:
         return 'Logged in as %s' % escape(session['username'])    
 
     table = dynamodb.Table('user')
-
     params = request.get_json()
     
-    print(params)
     if not 'username' in params  or not 'password' in params:
         abort(400)
 
@@ -41,38 +42,53 @@ def login():
 
     abort(401)
 
-def hash(s):
-    h = SHA256.new()
-    # h.update(s)
-    h.update(s.encode('utf-8'))
-    return h.hexdigest()
-
-@app.route("/upload/", methods = ['POST'])
+@app.route("/upload", methods = ['POST'])
 def upload():
+
+    # if not logged in
+    if not 'username' in session:
+        abort(401)
+
+    # parse params
+    params = request.get_json()
+    if not 'fname' in params  or not 'code' in params:
+        abort(400)
+
+    # get version and increase version
+    
+    username    = session['username']
+    fid         = username + '/' + params['fname']
+    code        = params['code']
+    version     = str(insert_new_version(fid))
 
     table = dynamodb.Table('user-function')
 
-    params = request.get_json()
-    if not 'fid' in params  or not 'code' in params:
-        abort(400)
-    
-    fid     = params['fid']
-    code    = params['code']
+    # store latest at /fid
+    table.put_item( Item={ 'fid': fid, 'code': code })
+    # store at /fid/version
+    table.put_item( Item={ 'fid': fid + '/' + version, 'code': code })
 
-    table.put_item(
-        Item={
-            'fid': fid,
-            'code': code
-        }
-    )
+    return 'Deployed at ' + CLOFLY_SERVER_URL + fid
 
-    return 'Upload Succeed'
+def insert_new_version(fid):
 
-@app.route('/logout/')
+    # get latest version
+    latest_version = 0
+    table = dynamodb.Table('user-function-version')
+    response = table.get_item( Key={ 'fid': fid })
+    if 'Item' in response:
+        latest_version = response['Item']['version']
+
+    # insert new version
+    new_version = latest_version + 1
+    table.put_item( Item={ 'fid': fid, 'version': new_version } )
+
+    return new_version
+
+@app.route('/logout')
 def logout():
     session.pop('username', None)
     return 'Logout Succeed'
-
 
 if __name__ == "__main__":
     app.run()

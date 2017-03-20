@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-from Crypto.Hash import SHA256
 import random
 import string
 import boto3
+from helper import hash
 
 PASSWORD_LEN = 16
 
@@ -14,11 +14,6 @@ def generate_random_password():
     password = ''.join(random.SystemRandom().choice(string.ascii_uppercase \
         + string.ascii_lowercase +string.digits) for _ in range(PASSWORD_LEN))
     return password
-
-def hash(s):
-    h = SHA256.new()
-    h.update(s)
-    return h.hexdigest()
 
 def insert_to_database(username, password):
 
