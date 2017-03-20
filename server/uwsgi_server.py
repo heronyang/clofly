@@ -20,13 +20,18 @@ def application(env, start_response):
     except Exception as error:
         start_response('440 Not found',
                        [('Content-Type','text/plain')])
-        return ['Error: ' + repr(error)]
+        return ['Error: ' + str(error)]
 
     # load
     nfm = NodeFunctionManager()
 
     print 'Running fid: ' + fid
-    directory = nfm.load(fid)
+    try:
+        directory = nfm.load(fid)
+    except Exception as error:
+        start_response('500 Internal Server Error',
+                       [('Content-Type','text/plain')])
+        return ['Error: ' + str(error)]
 
     # run
     image_name, port, container_id = nfm.run(fid, directory)
@@ -37,7 +42,7 @@ def application(env, start_response):
     except Exception as error:
         start_response('500 Internal Server Error',
                        [('Content-Type','text/plain')])
-        return ['Error: ' + repr(error)]
+        return ['Error: ' + str(error)]
 
     # stop
     # TODO: we may want to deinitializing the task after returned
@@ -59,7 +64,7 @@ def forward_request(port, env):
 
 def get_fid(request_uri):
 
-    m = re.match('^/[a-z0-9]{' + str(FID_LENGTH) + '}$', request_uri)
+    m = re.match('^/[A-Za-z0-9\-\_]*/[A-Za-z0-9\-\_]*$', request_uri)
     if m == None:
         raise Exception('Invalid fid in url')
     return m.group(0)[1:]   # remove first char '/'

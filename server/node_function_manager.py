@@ -12,14 +12,12 @@ from socket import error as SocketError
 
 NODEJS_TEMPLATE     = './node-template'
 IMAGE_NAME_PREFIX   = 'clofly/nodejs-user-function-'
-AWS_REGION          = 'us-west-2'
 HEARTBEAT_PERIOD    = 0.01
 
-# Setting only for debug mode
-if 'CLOFLY_DEBUG' in os.environ:
-    NODEJS_TEMPLATE = './node-template'
-
 class NodeFunctionManager():
+
+    def __get_fid_dir(self, fid):
+        return NODEJS_TEMPLATE + '-' + fid.replace('/', ',')
 
     def load(self, fid):
 
@@ -30,25 +28,25 @@ class NodeFunctionManager():
         uf = self.__download_function(fid)
 
 		# setup working directory
-        return self.__setup_directory(fid, uf)
+        fid_dir = self.__get_fid_dir(fid)
+        return self.__setup_directory(fid_dir, uf)
 
     def __download_function(self, fid):
 
-        db          = boto3.resource('dynamodb', region_name=AWS_REGION)
+        db          = boto3.resource('dynamodb')
         table       = db.Table('user-function')
         response    = table.get_item( Key={ 'fid': fid })
         uf          = response['Item']['code']
 
         if not bool(uf):
-            print 'Function not found'
-            sys.exit(0)
+            raise Exception('Function not found')
 
         return uf
 
     def __setup_directory(self, fid, uf):
 
         # temp directory name
-        directory = NODEJS_TEMPLATE + '-' + fid
+        directory = self.__get_fid_dir(fid)
 
         # copy template folder to target folder
         self.__exec(['cp', '-r', NODEJS_TEMPLATE, directory])
