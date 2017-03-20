@@ -7,6 +7,8 @@ Setup you aws ```credentials``` and ```config``` file under ~/.aws. For deamon, 
 ## Installation
 
     $ ./install.sh
+    $ sudo ln -s /usr/bin/nodejs /usr/bin/node
+    $ export NODE_PATH=/usr/local/lib/node_modules/
 
 ## Run (Local Test)
 

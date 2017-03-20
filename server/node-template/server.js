@@ -2,8 +2,14 @@
 
 const express = require('express');
 
-// Constants
-const PORT = 8080;
+// port
+var PORT = 8080;
+if(process.argv.length == 3) {
+    var p = parseInt(process.argv[2]);
+    if(p != NaN) {
+        PORT = p;
+    }
+}
 
 // App
 const app = express();

@@ -6,6 +6,11 @@ var f = fs.readFileSync('user-function.js', 'utf8');
 var re = /require\(.*\)/gi;
 var matches = f.match(re);
 
+if(matches == null) {
+    console.log('[Done] No user function depedencies found');
+    process.exit();
+}
+
 var deps = '';
 matches.forEach(function(match) {
     var dep = match.substring(9,match.length-2)

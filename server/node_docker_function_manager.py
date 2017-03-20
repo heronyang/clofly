@@ -5,8 +5,6 @@ import random
 import time
 import httplib
 import boto3
-import psutil
-import subprocess, signal
 from shutil import copyfile
 from subprocess import check_output
 from urllib2 import Request, urlopen, URLError, HTTPError
@@ -18,9 +16,6 @@ IMAGE_NAME_PREFIX   = 'clofly/nodejs-user-function-'
 HEARTBEAT_PERIOD    = 0.01
 
 class FunctionManager(FunctionManagerAbstract):
-
-    def __init__(self):
-        os.environ['NODE_PATH'] = '/usr/local/lib/node_modules/'
 
     def __get_fid_dir(self, fid):
         escape_fid = fid.replace('/', '.')
@@ -36,6 +31,7 @@ class FunctionManager(FunctionManagerAbstract):
 
 		# setup working directory
         directory = self.__get_fid_dir(fid)
+        print 'directory', directory
         return self.__setup_directory(directory, uf)
 
     def __download_function(self, fid):
@@ -50,7 +46,10 @@ class FunctionManager(FunctionManagerAbstract):
 
         return uf
 
-    def __setup_directory(self, directory, uf):
+    def __setup_directory(self, fid, uf):
+
+        # temp directory name
+        directory = self.__get_fid_dir(fid)
 
         # copy template folder to target folder
         self.__exec(['cp', '-r', NODEJS_TEMPLATE, directory])
@@ -65,25 +64,32 @@ class FunctionManager(FunctionManagerAbstract):
 
     def run(self, fid, directory):
 
-        print 'Start running node...'
-        port, process = self.__run_node(directory)
+        print 'Start building docker...'
+        image_name          = self.__build_docker(fid, directory)
 
-        print 'Waiting for node...'
+        print 'Start running docker...'
+        port, container_id  = self.__run_docker(image_name)
+
+        print 'waiting for docker...'
         self.__wait_until_ready(port)
 
-        return port, process
+        return port, container_id
 
-    def __run_node(self, directory):
+    def __build_docker(self, fid, directory):
+        image_name = IMAGE_NAME_PREFIX + fid
+        self.__exec(['docker', 'build', '-t', image_name, directory])
+        return image_name
+
+    def __run_docker(self, image_name):
 
         port = random.randint(1024 ,65535)  # random
+        print 'Docker client listening on port: ' + str(port)
 
-        cwd = os.getcwd()
-
-        os.chdir(directory)
-        process = subprocess.Popen(['./run.sh', str(port)]) # non-blocking
-        os.chdir(cwd)
-
-        return port, process
+        run_cmd = ['docker', 'run', '-d', '-p', str(port) + ':8080', image_name]
+        print run_cmd
+        container_id = self.__exec(run_cmd)[:12]
+        print 'Docker container id: ' + container_id
+        return port, container_id
 
     def __wait_until_ready(self, port):
 
@@ -101,18 +107,13 @@ class FunctionManager(FunctionManagerAbstract):
                 print 'Okay, function is up'
                 break
 
-    def stop(self, process, directory):
-        self.__kill_process(process)
+    def stop(self, container_id, directory):
+        self.__stop_docker(container_id)
         self.__remove_cache(directory)
 
-    def __kill_process(self, process):
-
-        p = psutil.Process(process.pid)
-        for proc in p.children(recursive=True):
-            print 'killing child process: ', p.pid
-            proc.kill()
-        print 'killing working process: ', process.pid
-        p.kill()
+    def __stop_docker(self, container_id):
+        output = self.__exec(['docker', 'stop', container_id])
+        print 'Docker container stopped ' + output
 
     def __remove_cache(self, directory):
         self.__exec(['rm', '-rf', directory])

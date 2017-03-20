@@ -53,3 +53,4 @@ sudo ln -s ../apps-available/uwsgi.ini
 cd $current_dir
 
 sudo service uwsgi start
+sudo npm install -g express
