@@ -45,7 +45,6 @@ def login():
 @app.route("/upload", methods = ['POST'])
 def upload():
 
-    # if not logged in
     if not 'username' in session:
         abort(401)
 
@@ -85,10 +84,10 @@ def insert_new_version(fid):
 
     return new_version
 
-@app.route('/logout')
+@app.route('/logout', methods = ['POST'])
 def logout():
     session.pop('username', None)
     return 'Logout Succeed'
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port="80")
