@@ -6,7 +6,7 @@ import sys
 import datetime
 
 from urllib2 import Request, urlopen
-from node_function_manager import FunctionManager
+from node_simple_function_manager import FunctionManager
 
 FID_LENGTH  = 16
 LOG_HOST    = 'log.clofly.com'
