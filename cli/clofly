@@ -17,24 +17,23 @@ try {
 var argv        = require('yargs')
     .usage('Usage: $0 <command> [options]')
     .command({
-        command: 'start <filename>',
-        aliases: ['run', 'deploy'],
-        desc: 'Start running an user function on clofly',
+        command: 'on <filename>',
+        desc: 'Turn on a clofly function',
         handler: (argv) => {
-            commandStart(argv.filename);
+            commandOn(argv.filename);
         }
     })
     .command({
-        command: 'stop <function_name>',
-        desc: 'Stop running an user function on clofly',
+        command: 'off <function_name>',
+        desc: 'Turn off a clofly function',
         handler: (argv) => {
-            commandStop(argv.user_function_name);
+            commandOff(argv.function_name);
         }
     })
     .command('*', 'invalid command', () => {}, (argv) => {
         console.log('Invalid command')
     })
-    .example('$0 start hello.js', 'Start running hello function on clofly')
+    .example('$0 on hello.js', 'Start running hello function on clofly')
     .demandCommand()
     .help('h')
     .alias('h', 'help')
@@ -44,14 +43,14 @@ var nRetries    = 1;
 var cookie      = null;
 
 /*
- * Command: start
+ * Command: on
  */
-function commandStart(filename) {
+function commandOn(filename) {
 
     var fname = path.basename(filename).split('.')[0];
     var userFunction = readFunctionFromFile(filename);
 
-    console.log('Uploading fname: ' + fname);
+    console.log('Turning on fname: ' + fname);
     uploadFunction(fname, userFunction);
 
 }
@@ -154,9 +153,38 @@ function login(callback, callbackParams) {
 }
 
 /*
- * Command: stop
+ * Command: off
  */
-function commandStop(userFunctionName) {
-    // TODO
-    console.log('Stopping ' + userFunctionName + ' is not completed');
+function commandOff(fname) {
+    // in case the user gives the filename instead
+    var fname = fname.split('.')[0];
+    console.log('Turning off ' + fname);
+    turnOffFunction(fname);
 }
+
+function turnOffFunction(fname) {
+
+    var params = { fname: fname }
+
+    request.post(
+
+        config.API_URL + 'turn-off',
+        { json: params, headers: { Cookie: cookie } },
+
+        function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                // OK
+                console.log(body);
+            } else if(!error && response.statusCode == 401){
+                // Unauthorized
+                login(turnOffFunction, [fname]);
+            } else {
+                console.log('Error: ' + error);
+                console.log(response);
+            }
+        }
+
+    );
+
+}
+

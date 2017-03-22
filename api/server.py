@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import boto3
+from datetime import datetime
 from flask import Flask, abort, request, session, escape
 from helper import hash
 
@@ -49,36 +50,78 @@ def upload():
     if not 'fname' in params  or not 'code' in params:
         abort(400)
 
-    # get version and increase version
-    
     username    = session['username']
     fid         = username + '/' + params['fname']
     code        = params['code']
-    version     = str(insert_new_version(fid))
+    now         = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+
+    ctime       = now
+    version     = 1
 
     table = dynamodb.Table('user-function')
 
-    # store latest at /fid
-    table.put_item( Item={ 'fid': fid, 'code': code })
-    # store at /fid/version
-    table.put_item( Item={ 'fid': fid + '/' + version, 'code': code })
+    # check if exists
+    response = table.get_item( Key={ 'fid': fid })
+    if 'Item' in response:
+        item = response['Item']
+
+        if item['code'] == code and item['stat'] == 'on':
+            return 'No update is found, skip'
+
+        if item['stat'] == 'on':
+            version = item['version'] + 1
+
+        ctime   = item['ctime']
+
+    # if not, create new
+    table.put_item(
+        Item={
+            'fid': fid,
+            'code': code,
+            'ctime': ctime,
+            'mtime': now, 
+            'version': version,
+            'stat': 'on'
+        }
+    )
 
     return 'Deployed at ' + CLOFLY_SERVER_URL + fid + ' (version: ' + str(version) + ')'
 
-def insert_new_version(fid):
+@app.route("/turn-off", methods = ['POST'])
+def turn_off():
 
-    # get latest version
-    latest_version = 0
-    table = dynamodb.Table('user-function-version')
+    if not 'username' in session:
+        abort(401)
+
+    # parse params
+    params = request.get_json()
+    if not 'fname' in params:
+        abort(400)
+
+    username    = session['username']
+    fid         = username + '/' + params['fname']
+
+    table = dynamodb.Table('user-function')
+
+    # check if not exist
     response = table.get_item( Key={ 'fid': fid })
-    if 'Item' in response:
-        latest_version = response['Item']['version']
+    if not 'Item' in response:
+        return 'Function not found'
 
-    # insert new version
-    new_version = latest_version + 1
-    table.put_item( Item={ 'fid': fid, 'version': new_version } )
+    # if it's already of
+    item = response['Item']
+    if item['stat'] == 'off':
+        return 'It\'s already off'
 
-    return new_version
+
+    # turn it off
+    table.update_item(
+        Key={ 'fid':fid },
+        UpdateExpression='set stat = :s',
+        ExpressionAttributeValues={ ':s': 'off', }
+    )
+
+    return 'Okay, it\'s off'
 
 @app.route('/logout', methods = ['POST'])
 def logout():
