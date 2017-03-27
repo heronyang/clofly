@@ -15,10 +15,7 @@ CACHE_FOLDER     = './cached-user-function/'
 class FunctionManager(FunctionManagerAbstract):
 
     def __init__(self):
-        if os.environ['DEBUG'] is not None:
-            os.environ['NODE_PATH'] = '/usr/local/lib/node_modules/'
-        else:
-            os.environ['NODE_PATH'] = '/usr/lib/node_modules'
+        os.environ['NODE_PATH'] = '/usr/lib/node_modules'
 
     def __get_cached_uf_filename(self, fid):
         escape_fid = fid.replace('/', '.')
