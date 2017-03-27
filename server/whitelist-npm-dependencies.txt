@@ -8,6 +8,16 @@ chalk
 debug
 bluebird
 mkdirp
+lodash
+async
+request
+underscore
+commander
+express
+chalk
+debug
+bluebird
+mkdirp
 q
 colors
 through2
@@ -85,7 +95,6 @@ stylus
 qs
 postcss
 passport
-npm
 backbone
 react-dom
 validator

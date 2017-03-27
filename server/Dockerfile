@@ -1,17 +1,10 @@
 FROM ubuntu:16.04
 
-ADD . /clofly
-WORKDIR /clofly
+ADD . /server
+WORKDIR /server
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install --assume-yes apt-utils
-
-RUN apt-get install -y curl
-RUN curl -sL https://deb.nodesource.com/setup_7.x | bash
-RUN apt-get install -y nodejs
-# RUN npm install -g `paste -s -d ' ' whitelist-npm-dependencies.txt`
-RUN npm install -g express -v
-RUN npm root -g
 
 RUN apt-get install -y python python-pip
 RUN pip install --upgrade pip
@@ -25,8 +18,9 @@ RUN apt-get install -y uwsgi uwsgi-plugin-python
 RUN apt-get install -y curl
 RUN curl -sL https://deb.nodesource.com/setup_7.x | bash
 RUN apt-get install -y nodejs
-# RUN npm install -g `paste -s -d ' ' whitelist-npm-dependencies.txt`
-RUN npm install -g express
+RUN npm cache clean
+# RUN npm install --no-bin-links -g `paste -s -d ' ' whitelist-npm-dependencies.txt`
+RUN ./install_npm.sh
 
 EXPOSE 80
 
