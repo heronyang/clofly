@@ -56,10 +56,10 @@ class FunctionManager(FunctionManagerAbstract):
 
         return None
 
-    def run(self, fid, uf):
+    def run(self, uf):
 
         print 'Start running node...'
-        port, process = self.__run_node(fid)
+        port, process = self.__run_node(uf)
 
         print 'Waiting for node...'
         self.__wait_until_ready(port)
@@ -89,7 +89,7 @@ class FunctionManager(FunctionManagerAbstract):
                 print 'Okay, function is up'
                 break
 
-    def stop(self, process, directory):
+    def stop(self, process):
         self.__kill_process(process)
 
     def __kill_process(self, process):

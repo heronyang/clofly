@@ -36,7 +36,7 @@ def application(env, start_response):
     print 'Loaded time took: ', datetime.datetime.now() - start_time
 
     # run
-    port, uf_process = fm.run(fid, uf)
+    port, uf_process = fm.run(uf)
 
     # forward requests to port
     try:
@@ -50,7 +50,7 @@ def application(env, start_response):
 
     # stop
     # TODO: we may want to deinitializing the task after returned
-    fm.stop(uf_process, directory)
+    fm.stop(uf_process)
     print 'Stop time took: ', datetime.datetime.now() - start_time
 
     start_response('200 OK', [('Content-Type','text/plain')])

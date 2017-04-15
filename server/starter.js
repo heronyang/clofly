@@ -16,9 +16,6 @@ if(port == NaN) {
     console.log('Wrong parameter');
 }
 
-// get fid
-const uf = process.argv[3]; 
-
 // heartbeat
 const app = express();
 app.get('/heartbeat', function (req, res) {
@@ -26,10 +23,10 @@ app.get('/heartbeat', function (req, res) {
 });
 
 // load user code
-//var fs = require('fs');
-//var cached_filename = CACHE_FOLDER + fid.replace('/', '.') + '.js';
-//eval(fs.readFileSync(cached_filename)+'');
+const uf = process.argv[3]; 
+console.log("===== User Function ======");
 console.log(uf);
+console.log("== User Function : End ===");
 eval(uf);
 app.get('/', f);
 
