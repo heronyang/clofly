@@ -27,7 +27,7 @@ def application(env, start_response):
 
     print 'Running fid: ' + fid
     try:
-        directory = fm.load(fid)
+        uf = fm.load(fid)
     except Exception as error:
         start_response('500 Internal Server Error',
                        [('Content-Type','text/plain')])
@@ -36,7 +36,7 @@ def application(env, start_response):
     print 'Loaded time took: ', datetime.datetime.now() - start_time
 
     # run
-    port, uf_process = fm.run(fid, directory)
+    port, uf_process = fm.run(fid, uf)
 
     # forward requests to port
     try:

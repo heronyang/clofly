@@ -29,8 +29,10 @@ class FunctionManager(FunctionManagerAbstract):
         # downlaod from database
         uf = self.__download_function(fid)
 
+        return uf
+
 		# save to disk
-        return self.__save_to_disk(fid, uf)
+        # return self.__save_to_disk(fid, uf)
 
     def __download_function(self, fid):
 
@@ -54,7 +56,7 @@ class FunctionManager(FunctionManagerAbstract):
 
         return None
 
-    def run(self, fid, _):
+    def run(self, fid, uf):
 
         print 'Start running node...'
         port, process = self.__run_node(fid)
@@ -64,10 +66,10 @@ class FunctionManager(FunctionManagerAbstract):
 
         return port, process
 
-    def __run_node(self, fid):
+    def __run_node(self, uf):
 
         port = random.randint(1024 ,65535)  # random
-        process = subprocess.Popen(['./starter.js', str(port), fid]) # non-blocking
+        process = subprocess.Popen(['./starter.js', str(port), uf]) # non-blocking
 
         return port, process
 

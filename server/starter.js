@@ -17,7 +17,7 @@ if(port == NaN) {
 }
 
 // get fid
-const fid = process.argv[3]; 
+const uf = process.argv[3]; 
 
 // heartbeat
 const app = express();
@@ -26,10 +26,12 @@ app.get('/heartbeat', function (req, res) {
 });
 
 // load user code
-var fs = require('fs');
-var cached_filename = CACHE_FOLDER + fid.replace('/', '.') + '.js';
-eval(fs.readFileSync(cached_filename)+'');
+//var fs = require('fs');
+//var cached_filename = CACHE_FOLDER + fid.replace('/', '.') + '.js';
+//eval(fs.readFileSync(cached_filename)+'');
+console.log(uf);
+eval(uf);
 app.get('/', f);
 
 app.listen(port);
-console.log('Running fid ' + fid + ' on http://localhost:' + port);
+console.log('Running function on http://localhost:' + port);
